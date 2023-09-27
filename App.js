@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, StatusBar, View, Button, TextInput, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { API_KEY } from '@env';
+import * as Location from 'expo-location'
 
 export default function App() {
+  const [location, setLocation] = useState(null);
   const [text, setText] = useState('');
   const [markerPosition, setMarkerPosition] = useState({
     latitude: 60.200692, // Initial latitude
@@ -17,6 +19,25 @@ export default function App() {
   });
 
   const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('No permission to get location');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setLocation(location);
+      console.log('Location:', location);
+
+      setMapRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    })();
+  }, []);
 
   const buttonPressed = () => {
     getMuunnos();
@@ -42,6 +63,7 @@ export default function App() {
             latitude,
             longitude,
           });
+
 
           setMapRegion({
             latitude,
